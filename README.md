@@ -56,12 +56,12 @@ the desired dataframes. They do not require any inputs.
 
 * `geo` – The desired geographic region. Please select from the following
 list:
- - Council Distrist: “councildist”
- - Community Distrist: “communitydist”
- - School District: “schooldist”
- - Police Precinct: “policeprct”
- - Neighborhood Tabulation Area: “nta”\
- - Borough: “borough”
+   * Council Distrist: “councildist”
+   * Community Distrist: “communitydist”
+   * School District: “schooldist”
+   * Police Precinct: “policeprct”
+   * Neighborhood Tabulation Area: “nta”
+   * Borough: “borough”
 * `var_codes` – The desired demographic group(s), as represented
 by the ACS variable code. To access the list of available demographic
 variables and their codes, please run `get_census_variables()`
