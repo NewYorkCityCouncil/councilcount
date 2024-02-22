@@ -80,12 +80,11 @@ get_geo_estimates(geo = "councildist", var_codes = vars, boundary_year = "2023")
 #### Python
 
 The equivalent functions are also available in Python. To access them,
-use the following code:
+use the following code (Note: you must have the `councilcount` package downloaded on your computer):
 
 ``` python
 import sys
-# set absolute path to councilcount/inst/python location
-my_path = 'INSERT PATH'
+my_path = 'INSERT PATH' # set absolute path to /councilcount/inst/python location (example: '/Users/jsmith/Desktop)
 sys.path.insert(0, my_path + "/councilcount/inst/python/")
 from retrieve_estimates import get_bbl_estimates, get_census_variables, get_geo_estimates
 ```
