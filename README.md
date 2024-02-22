@@ -97,7 +97,7 @@ dataframe will include a column with the geometries associated with each
 geographic region. If `download` is set to True, the dataframe will
 automatically download as a CSV when the function runs.
 
-#### Data Sources 
+## Data Sources 
 
 * [The Five Year American Community Survey (ACS)](https://www.census.gov/data/developers/data-sets/acs-5year.html)
   * 2006-2011
@@ -108,7 +108,7 @@ automatically download as a CSV when the function runs.
   * 2016
   * 2021  
 
-#### Methodology 
+## Methodology 
 
 Estimates for around 70 ACS demographic variables were generated for the dashboard. Estimates are available at Council District, Community District, School District, Police Precinct, Neighborhood Tabulation Area, Borough, and New York City levels. CouncilCount utilizes the 5-Year ACS, meaning the data points presented on the dashboard represent 5-year averages for the listed demographic variables. Using the multiyear estimates increases the statistical reliability of the data, especially for small population subgroups and regions with low populations. 
 
