@@ -6,7 +6,7 @@ from shapely import wkt
 import os
 
 path_str = os.path.dirname(__file__)
-sub_str = "councilverse/" # initializing sub string
+sub_str = "councilcount/" # initializing sub string
 absolute_path = path_str[:path_str.index(sub_str) + len(sub_str)] # slicing off after length computation
 
 bbl_relative_path = 'inst/extdata/bbl-population-estimates_2021.csv'
