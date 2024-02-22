@@ -81,7 +81,7 @@ use the following code:
 ``` python
 import sys
 # set absolute path to councilverse/inst/python location
-sys.path.insert(0, "/{YOUR PATH}/councilverse/inst/python")
+sys.path.insert(0, "/{YOUR PATH}/councilcount/inst/python")
 from retrieve_estimates import get_bbl_estimates, get_census_variables, get_geo_estimates
 ```
 
