@@ -176,4 +176,8 @@ def get_ACS_variables(acs_year):
     
     """
     
+    # error if geo not available
+    if year not in acs_years:
+        raise ValueError(f'BBL population estimates for {year} are not available')
+    
     return globals()[f'data_dictionary_{acs_year}']
