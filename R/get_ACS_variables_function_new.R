@@ -5,19 +5,22 @@
 #' @return dataframe of available variables
 #' @export
 
-acs_years <- c('2011', '2016', '2021')
-
 get_ACS_variables <- function(acs_year) {
 
-  # Warning message if unavailable survey year selected
-  if (!(acs_year %in% acs_years)) {
-    message("This ACS survey year is not available.", "\n",
-            "Please choose from the following:\n",
-            paste0('"', acs_years, '"', collapse = "\n"))
-  }
+  # find all the available years
+  csv_names <- dir(system.file("extdata", package = "councilcount"))
+  dictionary_csv_names <- csv_names[grepl("data_dictionary", csv_names)]
+  dictionary_years <- sapply(dictionary_csv_names, function(x) substr(x, 17, 20))
 
-  # Construct the name of the data dictionary based on the ACS year
+  # construct the name of the dataset based on the year
   dict_name <- paste0("data_dictionary_", acs_year, '.csv')
+
+  # error message if unavailable survey year selected
+  if (!(acs_year %in% dictionary_years)) {
+    stop("This year is not available.", "\n",
+         "Please choose from the following:\n",
+         paste0('"', dictionary_years, '"', collapse = "\n"))
+  }
 
   # Retrieve the data dictionary from the package
   readr::read_csv(fs::path_package("extdata", glue::glue(dict_name), package = "councilcount")) %>%
