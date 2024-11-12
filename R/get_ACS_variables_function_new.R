@@ -5,12 +5,17 @@
 #' @return dataframe of available variables
 #' @export
 
-get_ACS_variables <- function(acs_year) {
+get_ACS_variables <- function(acs_year = NULL) {
 
   # find all the available years
   csv_names <- dir(system.file("extdata", package = "councilcount"))
   dictionary_csv_names <- csv_names[grepl("data_dictionary", csv_names)]
   dictionary_years <- sapply(dictionary_csv_names, function(x) substr(x, 17, 20))
+
+  # if year not chosen, set default to latest year
+  if (is.null(acs_year)){
+    acs_year <- max(dictionary_years)
+  }
 
   # construct the name of the dataset based on the year
   dict_name <- paste0("data_dictionary_", acs_year, '.csv')
@@ -21,6 +26,8 @@ get_ACS_variables <- function(acs_year) {
          "Please choose from the following:\n",
          paste0('"', dictionary_years, '"', collapse = "\n"))
   }
+
+  print(paste('Printing data dictionary for the', acs_year, '5-Year ACS'))
 
   # Retrieve the data dictionary from the package
   readr::read_csv(fs::path_package("extdata", glue::glue(dict_name), package = "councilcount")) %>%

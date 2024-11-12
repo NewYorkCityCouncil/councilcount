@@ -7,12 +7,17 @@
 #' @export
 #'
 
-get_bbl_estimates <- function(year) {
+get_bbl_estimates <- function(year = NULL) {
 
   # find all the available years
   csv_names <- dir(system.file("extdata", package = "councilcount"))
   bbl_csv_names <- csv_names[grepl("bbl-population-estimates_", csv_names)]
   bbl_years <- sapply(bbl_csv_names, function(x) substr(x, 26, 29))
+
+  # if year not chosen, set default to latest year
+  if (is.null(year)){
+    year <- max(bbl_years)
+  }
 
   # construct the name of the dataset based on the year
   bbl_name <- paste0("bbl-population-estimates_", year, '.csv')
@@ -23,6 +28,8 @@ get_bbl_estimates <- function(year) {
          "Please choose from the following:\n",
          paste0('"', bbl_years, '"', collapse = "\n"))
   }
+
+  print(paste('Printing BBL-level population estimates for', year))
 
   # retrieve the dataset from the package
   readr::read_csv(fs::path_package("extdata", glue::glue(bbl_name), package = "councilcount")) %>%
