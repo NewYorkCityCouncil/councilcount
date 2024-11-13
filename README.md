@@ -80,7 +80,7 @@ Bachelor’s degree or higher” are used. The data is requested along 2023
 Council District boundaries for the 2018-2022 ACS.
 
 ``` r
-vars <- c('DP05_0003PE', 'DP02_0068E')
+vars <- c('DP05_0003E', 'DP02_0068E')
 get_geo_estimates(acs_year = "2022", geo = "councildist", var_codes = vars, boundary_year = "2023") 
 ```
 
