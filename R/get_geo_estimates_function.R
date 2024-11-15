@@ -40,7 +40,7 @@ get_geo_estimates <- function(acs_year = NULL, geo = NULL, var_codes = "all", bo
       sf::st_as_sf(wkt = "geometry", crs = 2263) # setting CRS to 2263 for NYC
     }
 
-    master_col_list <- c() # list of columns for chosen variable(s) if "all" NOT selected
+    master_col_list <- c(geo) # list of columns for chosen variable(s) if "all" NOT selected
 
     if ("all" %in% var_codes) { # if all variable codes chosen, output all columns
       return(geo_df)
@@ -58,8 +58,7 @@ get_geo_estimates <- function(acs_year = NULL, geo = NULL, var_codes = "all", bo
 
           # add num estimate, num MOE, % estimate, % MOE, and CV for the variable code
           var_code_base <- substr(var_code, 1, 9)
-          var_col_list <- c(geo,
-                            paste0(var_code_base, 'E'),
+          var_col_list <- c(paste0(var_code_base, 'E'),
                             paste0(var_code_base, 'M'),
                             paste0(var_code_base, 'PE'),
                             paste0(var_code_base, 'PM'),
