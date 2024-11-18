@@ -96,8 +96,6 @@ sys.path.insert(0, my_path + "/councilcount/inst/python/")
 from retrieve_estimates import get_bbl_estimates, get_census_variables, get_geo_estimates
 ```
 
-`get_bbl_estimates()`, `get_ACS_variables()`, and `get_geo_estimates()` have the same inputs and outputs in Python as they do in R.
-
 ## Data Sources 
 
 * [The Five Year American Community Survey (ACS)](https://www.census.gov/data/developers/data-sets/acs-5year.html)
