@@ -21,7 +21,7 @@ get_geo_estimates(
 \item{boundary_year}{(string). Year for the geographic boundary (i.e. `geo`). Currently only relevant for council districts, which have the options "2013" and "2023".}
 }
 \value{
-Table with estimates for the specified geography, ACS year. All variables are taken from the 5-Year ACS Data Profiles data dictionary, which can be found here: https://api.census.gov/data/{INSERT YEAR}/acs/acs5/profile/variables.html.
+Table with estimates for the specified geography, ACS year. All variables are taken from the 5-Year ACS Data Profiles data dictionary, which can be found here: https://api.census.gov/data/{INSERT YEAR}/acs/acs5/profile/variables.html. Codes ending with 'E' and 'M' represent numerical estimates and margins of error, respectively, while codes ending with 'PE' and 'PM' represent percent     estimates and margins of error, respectively. Codes ending with 'V' represent coefficients of variation.
 }
 \description{
 Function to retrieve demographic estimates by specified geography and ACS year
