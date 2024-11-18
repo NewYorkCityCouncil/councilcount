@@ -94,7 +94,7 @@ def get_geo_estimates(acs_year=None, geo=None, var_codes="all", boundary_year=No
                     # updating master column list
                     master_col_list.extend(var_col_list)
                     
-            return geo_df[master_col_list]
+            return geo_df[master_col_list + ['geometry']] # adding all desired columns + geometry column 
 
     # check input cases
     if acs_year is None:
