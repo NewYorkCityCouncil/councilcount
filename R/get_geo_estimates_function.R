@@ -6,7 +6,7 @@
 #' @param geo (string). Geographic level of aggregation desired. Options: "borough", "communitydist", "councildist", "nta", "policeprct", "schooldist", "city".
 #' @param var_codes (list). List of chosen variable codes, selected from get_ACS_variables(). The default input is "all", which provides estimates for all available variable codes.
 #' @param boundary_year (string). Year for the geographic boundary (i.e. `geo`). Currently only relevant for council districts, which have the options "2013" and "2023".
-#' @return Table with estimates for the specified geography, ACS year. All variables are taken from the 5-Year ACS Data Profiles data dictionary, which can be found here: https://api.census.gov/data/{INSERT YEAR}/acs/acs5/profile/variables.html.
+#' @return Table with estimates for the specified geography, ACS year. All variables are taken from the 5-Year ACS Data Profiles data dictionary, which can be found here: https://api.census.gov/data/{INSERT YEAR}/acs/acs5/profile/variables.html. Codes ending with 'E' and 'M' represent numerical estimates and margins of error, respectively, while codes ending with 'PE' and 'PM' represent percent     estimates and margins of error, respectively. Codes ending with 'V' represent coefficients of variation.
 #' @export
 
 get_geo_estimates <- function(acs_year = NULL, geo = NULL, var_codes = "all", boundary_year = NULL) {
@@ -40,7 +40,7 @@ get_geo_estimates <- function(acs_year = NULL, geo = NULL, var_codes = "all", bo
       sf::st_as_sf(wkt = "geometry", crs = 2263) # setting CRS to 2263 for NYC
     }
 
-    master_col_list <- c(geo) # list of columns for chosen variable(s) if "all" NOT selected
+    master_col_list <- c() # list of columns for chosen variable(s) if "all" NOT selected
 
     if ("all" %in% var_codes) { # if all variable codes chosen, output all columns
       return(geo_df)
@@ -58,7 +58,8 @@ get_geo_estimates <- function(acs_year = NULL, geo = NULL, var_codes = "all", bo
 
           # add num estimate, num MOE, % estimate, % MOE, and CV for the variable code
           var_code_base <- substr(var_code, 1, 9)
-          var_col_list <- c(paste0(var_code_base, 'E'),
+          var_col_list <- c(geo,
+                            paste0(var_code_base, 'E'),
                             paste0(var_code_base, 'M'),
                             paste0(var_code_base, 'PE'),
                             paste0(var_code_base, 'PM'),
