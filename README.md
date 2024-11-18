@@ -96,17 +96,7 @@ sys.path.insert(0, my_path + "/councilcount/inst/python/")
 from retrieve_estimates import get_bbl_estimates, get_census_variables, get_geo_estimates
 ```
 
-`get_bbl_estimates()` and `get_census_variables()` function the same in
-both R and Python. However, `get_geo_estimates()` has some differences
-in Python. Instead of having separate parameters for geo and boundary
-year, there are two input options for Council Districts, “councildist13”
-and “councildist23.” Data for New York City as a whole is also available
-using “nyc” for geo. Otherwise, the geo input options are the same.
-There are also two additional parameters, `polygons` and `download`,
-with the defaults set at False. If `polygons` is set to True, the
-dataframe will include a column with the geometries associated with each
-geographic region. If `download` is set to True, the dataframe will
-automatically download as a CSV when the function runs.
+`get_bbl_estimates()`, `get_ACS_variables()`, and `get_geo_estimates()` have the same inputs and outputs in Python as they do in R.
 
 ## Data Sources 
 
