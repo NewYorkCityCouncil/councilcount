@@ -15,7 +15,7 @@ get_geo_estimates <- function(acs_year = NULL, geo = NULL, var_codes = "all", bo
   file_names <- dir(system.file("extdata", package = "councilcount"))
   geo_file_names <- file_names[grepl("geographies|nyc-wide", file_names)]
   geo_names <- stringr::str_extract(geo_file_names, "[^-]+") %>% unique()
-  geo_names[['nyc']] <- 'city'
+  geo_names <- lapply(geo_names, function(x) ifelse(x == "nyc", "city", x))
 
   # recording available years
   available_years <- sort(as.numeric(unique(stringr::str_extract(file_names, "\\d{4}"))))
