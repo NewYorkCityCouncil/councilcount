@@ -5,7 +5,7 @@
 
 The `councilcount` package allows easy access to population data for
 over 100 demographic groups across various NYC geographic boundaries.
-This data was pulled from the 2017-2021 5-Year American Community
+This data was pulled from the 5-Year American Community
 Survey. For geographic boundaries that are not included in the ACS, like
 council districts, estimates were generated.
 
