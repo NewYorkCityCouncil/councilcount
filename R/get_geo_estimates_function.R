@@ -1,110 +1,112 @@
-#' Function to retrieve acs estimates from csvs at different geographies
+#' Function to retrieve demographic estimates by specified geography and ACS year
 #'
-#' @param geo (string). Name of the geography with associated csv in "extdata". If NULL, returns a list of possible geography csvs. Options: "borough", "communitydist", "councildist", "nta", "policeprct", "schooldist".
-#' @param var_codes (list). List of chosen variable codes, selected from get_census_variables. If wish to select all variable codes, input "all" (this is also the default value).
-#' @param boundary_year (string). Year for the geographic boundary (i.e. geo). Currently only relevant for council districts, which have the options "2013" and "2023".
+#' @import tidyverse
 #' @import dplyr
-#' @return sf for the specified geography, or message with list of geographies if none is specified
+#' @param acs_year (string). The desired 5-Year ACS year (ex: for the 2017-2021 5-Year ACS, enter "2021").
+#' @param geo (string). Geographic level of aggregation desired. Options: "borough", "communitydist", "councildist", "nta", "policeprct", "schooldist", "city".
+#' @param var_codes (list). List of chosen variable codes, selected from get_ACS_variables(). The default input is "all", which provides estimates for all available variable codes.
+#' @param boundary_year (string). Year for the geographic boundary (i.e. `geo`). Currently only relevant for council districts, which have the options "2013" and "2023".
+#' @return Table with estimates for the specified geography, ACS year. All variables are taken from the 5-Year ACS Data Profiles data dictionary, which can be found here: https://api.census.gov/data/{INSERT YEAR}/acs/acs5/profile/variables.html. Codes ending with 'E' and 'M' represent numerical estimates and margins of error, respectively, while codes ending with 'PE' and 'PM' represent percent     estimates and margins of error, respectively. Codes ending with 'V' represent coefficients of variation.
 #' @export
 
-get_geo_estimates <- function(geo = NULL, var_codes = "all", boundary_year = NULL) {
+get_geo_estimates <- function(acs_year = NULL, geo = NULL, var_codes = "all", boundary_year = NULL) {
 
   # locate available csv files
-  csv_names <- dir(system.file("extdata", package = "councilcount"))
-  geo_csv_names <- csv_names[grepl("geographies", csv_names)]
-  geo_names <- stringr::str_extract(geo_csv_names, "[^-]+") %>% unique()
+  file_names <- dir(system.file("extdata", package = "councilcount"))
+  geo_file_names <- file_names[grepl("geographies|nyc-wide", file_names)]
+  geo_names <- stringr::str_extract(geo_file_names, "[^-]+") %>% unique()
+  geo_names[['nyc']] <- 'city'
 
-  # df with var_codes that access desired variables
-  demo_variables <- councilcount::census_demo_variables
+  # recording available years
+  available_years <- sort(as.numeric(unique(stringr::str_extract(file_names, "\\d{4}"))))
 
   # use boundary year information to collect the correct csv later
-  boundary_year_num <- stringr::str_sub(boundary_year, -2)
+  boundary_year_num <- stringr::str_sub(as.character(boundary_year), -2)
 
-  # function to read and wrangles geo csv's
-  # note: only year used so far is 2021 so all files end in _2021
-
+  # function to read and wrangles geo files
   read_geos <- function(geo = NULL, boundary_year_ext = NULL) {
 
-    if (!(is.null(boundary_year_ext))) { # if boundary_year not null (i.e. council is chosen), adding boundary year to geo name
-      add_year <- stringr::str_sub(boundary_year_ext, 3)
-    } else { # otherwise, leave as null (no boundary year added)
-      add_year <- boundary_year_ext
+    if (!(is.null(boundary_year_ext))) { # if boundary_year not null (i.e. councildist is chosen), prepare to add boundary year to geo name
+      add_boundary_year <- paste0('_b', boundary_year_ext) # putting in format that matches file names
+    } else { # otherwise, leave as blank (no boundary year added)
+      add_boundary_year <- ''
     }
 
-    # creating output df
-    geo_df <- readr::read_csv(fs::path_package("extdata",glue::glue("{geo}-geographies{boundary_year_ext}_2021.csv"), package = "councilcount")) %>%
-      janitor::clean_names() %>%
-      sf::st_as_sf(wkt = "geometry", crs = 4326) %>%
-      sf::st_transform("+proj=longlat +datum=WGS84")
+    # creating output sf
+
+    if (geo == 'city') {
+      geo_df <- read_csv(system.file("extdata", glue::glue("nyc-wide_estimates_{acs_year}.csv"), package = "councilcount"))
+    } else { geo_df <- sf::st_read(fs::path_package("extdata",glue::glue("{geo}-geographies{add_boundary_year}_{acs_year}.geojson"), package = "councilcount")) %>%
+      sf::st_as_sf(wkt = "geometry", crs = 2263) # setting CRS to 2263 for NYC
+    }
+
+    master_col_list <- c(geo) # list of columns for chosen variable(s) if "all" NOT selected
 
     if ("all" %in% var_codes) { # if all variable codes chosen, output all columns
       return(geo_df)
     } else { # if list of variable codes requested, subset
 
-      # using var_codes list to access desired variable names
-      demo_variables <- demo_variables %>%
-        mutate(cleaned_name = janitor::make_clean_names(var_name)) %>%
-        filter(var_code %in% var_codes)
+      # creating list of desired variables names (for sub-setting final table)
+      for (var_code in var_codes) {
 
-      # creating list of desired variables names (for sub-setting final df)
-      col_names <- c(paste(geo, add_year, sep=''), 'geometry')
-      for(i in 1:nrow(demo_variables)) {
-        row <- demo_variables[i,]
+        # check if the variable code is available in the data
+        if (!(var_code %in% colnames(geo_df))) {
+          stop(paste("Estimates for the variable code", var_code, "are not available", "\n",
+                     "You may have made a typo, so please double check your work.", "\n",
+                     "You can use the get_census_variables() function to view your variable options, or input 'all' to view all columns.\n"))
+        } else {
 
-        # if Total population/ households selected, only include estimate (doesn't have MOE/ CV)
-        if (row$var_code %in% c('DP02_0088E','DP02_0001E')) {
+          # add num estimate, num MOE, % estimate, % MOE, and CV for the variable code
+          var_code_base <- substr(var_code, 1, 9)
+          var_col_list <- c(paste0(var_code_base, 'E'),
+                            paste0(var_code_base, 'M'),
+                            paste0(var_code_base, 'PE'),
+                            paste0(var_code_base, 'PM'),
+                            paste0(var_code_base, 'V'))
 
-          col_names <- append(col_names, row$cleaned_name)
+          master_col_list <- append(master_col_list, var_col_list) # updating master column list
 
-        } else { # otherwise include estimates and MOE/ CV
-
-          col_names <- append(col_names, row$cleaned_name) # adding percent version
-          col_names <- append(col_names, stringr::str_sub(row$cleaned_name, 9)) # adding number   version
-          col_names <- append(col_names, paste(row$cleaned_name, 'moe', sep = '_')) # adding % MOE
-          col_names <- append(col_names, paste(stringr::str_sub(row$cleaned_name, 9), 'moe', sep = '_')) # adding number MOE
-          col_names <- append(col_names, paste(stringr::str_sub(row$cleaned_name, 9), 'cv', sep = '_')) # adding CV
+          }
         }
+      return(geo_df[,master_col_list]) # subsetted
       }
-      return(geo_df[,col_names])
     }
-  }
-
-  # creating list of variable code typos if any are present
-  typos <- c()
-  if (!(is.null(var_codes))) {
-    if (!("all" %in% var_codes)) { # if specific variable codes provided, check for typos
-      typos <- var_codes[!(var_codes %in% demo_variables$var_code)]
-    }
-  }
 
   # different input cases. can check in tests/testthat/test-get_geo_estimates_function.R
 
-  if (is.null(var_codes)) {
-    message("get_geo_estimates() requires a 'var_codes' parameter.", "\n", "Please use the get_census_variables() function to view your options, or input 'all' to view all columns.\n")
+  if (is.null(acs_year)) {
+    message("get_geo_estimates() requires an `acs_year` parameter.", "\n",
+            "Please choose from the following:\n",
+            paste0('"',available_years, '"', collapse = "\n"))
   } else if (is.null(geo)) {
-    message("get_geo_estimates() requires a 'geo' parameter.", "\n",
+    message("get_geo_estimates() requires a `geo` parameter.", "\n",
             "Please choose from the following:\n",
             paste0('"',geo_names, '"', collapse = "\n"))
-  } else if ("2013" %in% var_codes | "2023" %in% var_codes){
-    message("boundary_year input used for var_codes parameter. Please provide parameter names to avoid this issue.")
-  } else if (length(typos) > 0){
-    message("The following variable codes could not be found:\n\n", paste0('"',typos, '"', collapse = "\n"), "\n\nPlease use the get_census_variables() function to view your options, or input 'all' to view all columns.")
+  } else if (is.null(boundary_year) && geo == "councildist"){
+    message("`boundary_year` input has been ommitted.", "\n",
+            "`boundary_year` must be set to 2013 or 2023 when 'councildist' is selected for `geo`.", "\n",
+            "Overriding `boundary_year` input to 2023.")
+    read_geos(geo, "23")
+  } else if (!(acs_year %in% available_years)) {
+    message(paste0("The ACS year ", '"',acs_year,'"', " could not be found"), "\n",
+            "Please choose from the following:\n",
+            paste0('"',available_years, '"', collapse = "\n"))
   } else if (!(geo %in% geo_names)) {
-    message("This geography could not be found", "\n",
+    message(paste0("The geography ", '"',geo,'"', " could not be found"), "\n",
             "Please choose from the following:\n",
             paste0('"',geo_names, '"', collapse = "\n"))
-  } else if (is.null(boundary_year) & geo == "councildist"){
-    message("Setting `boundary_year` as 2013. `boundary_year` can be '2013' or '2023'.")
-    read_geos(geo, "_b13")
-  } else if (is.null(boundary_year) & geo != "councildist"){
-    read_geos(geo, "")
-  } else if (geo != "councildist"){
-    message("`boundary_year` is only relevant for `geo = councildist`. Overriding boundary_year input to NULL")
-    read_geos(geo, "")
-  } else if ((boundary_year != "2013" & boundary_year != "2023") & geo == "councildist") {
-    message("`boundary_year` must be '2013' or '2023'. Overriding boundary_year input to 2013.")
-    read_geos(geo, "_b13")
-  } else if (geo == "councildist"){
-    read_geos(geo, glue::glue("_b{boundary_year_num}"))
+  } else if ((boundary_year != "2013" & boundary_year != "2023") && geo == "councildist") {
+    message(paste0('"',boundary_year, '"', " is not a valid input for `boundary_year`."), "\n",
+            "`boundary_year` must be set to 2013 or 2023 when 'councildist' is selected for `geo`.", "\n",
+            "Overriding `boundary_year` input to 2023.")
+    read_geos(geo, "23")
+  } else if (!is.null(boundary_year) && geo != "councildist"){
+    message("`boundary_year` is only relevant for `geo = councildist`.", "\n",
+            "Overriding `boundary_year` input to NULL.")
+    read_geos(geo)
+  } else if (is.null(boundary_year) && geo != "councildist"){ # correct entry for non-council geography
+    read_geos(geo)
+  } else if (geo == "councildist"){ # correct entry for council geography
+    read_geos(geo, boundary_year_num)
   }
 }

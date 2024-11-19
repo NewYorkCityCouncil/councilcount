@@ -1,223 +1,219 @@
-import pandas as pd
-import numpy as np
-from copy import deepcopy 
-from geopandas import GeoDataFrame
-from shapely import wkt
 import os
+import pandas as pd
+import geopandas as gpd
+from warnings import warn
 
 path_str = os.path.dirname(__file__)
 sub_str = "councilcount/" # initializing sub string
 absolute_path = path_str[:path_str.index(sub_str) + len(sub_str)] # slicing off after length computation
 
-bbl_relative_path = 'inst/extdata/bbl-population-estimates_2021.csv'
-bbl_full_path = os.path.join(absolute_path, bbl_relative_path)
 
-nyc_relative_path = 'inst/extdata/nyc-wide_estimates_2021.csv'
-nyc_full_path = os.path.join(absolute_path, nyc_relative_path)
-councildist13_relative_path = 'inst/extdata/councildist-geographies_b13_2021.csv'
-councildist13_full_path = os.path.join(absolute_path, councildist13_relative_path)
-councildist23_relative_path = 'inst/extdata/councildist-geographies_b23_2021.csv'
-councildist23_full_path = os.path.join(absolute_path, councildist23_relative_path)
-schooldist_relative_path = 'inst/extdata/schooldist-geographies_2021.csv'
-schooldist_full_path = os.path.join(absolute_path, schooldist_relative_path)
-communitydist_relative_path = 'inst/extdata/communitydist-geographies_2021.csv'
-communitydist_full_path = os.path.join(absolute_path, communitydist_relative_path)
-policeprct_relative_path = 'inst/extdata/policeprct-geographies_2021.csv'
-policeprct_full_path = os.path.join(absolute_path, policeprct_relative_path)
-nta_relative_path = 'inst/extdata/nta-geographies_2021.csv'
-nta_full_path = os.path.join(absolute_path, nta_relative_path)
-borough_relative_path = 'inst/extdata/borough-geographies_2021.csv'
-borough_full_path = os.path.join(absolute_path, borough_relative_path)
+def get_geo_estimates(acs_year=None, geo=None, var_codes="all", boundary_year=None):
+    """
+    Retrieve demographic estimates by specified geography and ACS year.
 
-# uploading BBL population estimates
+    Parameters:
+    acs_year (int): Desired 5-Year ACS year (e.g., "2021" for the 2017-2021 5-Year ACS).
+    geo (str): Geographic level of aggregation desired. Options include "borough", "communitydist", "councildist", 
+               "nta", "policeprct", "schooldist", or "city".
+    var_codes (list or str): List of chosen variable codes selected from `get_ACS_variables()` 'estimate_var_codes'
+    columns. Default is "all", which provides estimates for all available variable codes.
+    boundary_year (int): Year for the geographic boundary (relevant for "councildist"). Options: "2013", "2023".
 
-population_estimates = pd.read_csv(bbl_full_path)
+    Returns:
+    pandas.DataFrame or geopandas.GeoDataFrame: A dataframe with estimates for the specified geography and ACS year,
+    which can be found here: https://api.census.gov/data/{INSERT YEAR}/acs/acs5/profile/variables.html. 
 
-# NYC-level numbers for each demographic
-
-nyc_wide_estimates = pd.read_csv(nyc_full_path)
-# total_pop_NYC = 8769927 # council_geographies['Total population'].sum()
-# total_house_NYC = 3250657 
-# nyc_wide_estimates['Total population'] = total_pop_NYC
-
-# uploading data for each geography type
-
-councildist13_geographies = pd.read_csv(councildist13_full_path)
-councildist23_geographies = pd.read_csv(councildist23_full_path)
-communitydist_geographies = pd.read_csv(communitydist_full_path)
-schooldist_geographies = pd.read_csv(schooldist_full_path)
-policeprct_geographies = pd.read_csv(policeprct_full_path)
-nta_geographies = pd.read_csv(nta_full_path)
-borough_geographies = pd.read_csv(borough_full_path)
-
-# fixing index/ columns
-
-councildist13_geographies = councildist13_geographies.set_index('councildist13')
-councildist23_geographies = councildist23_geographies.set_index('councildist23')
-communitydist_geographies = communitydist_geographies.set_index('communitydist')
-schooldist_geographies = schooldist_geographies.set_index('schooldist')
-policeprct_geographies = policeprct_geographies.set_index('policeprct')
-nta_geographies = nta_geographies.set_index('nta')
-borough_geographies = borough_geographies.set_index('borough')
-
-# converting to GeoDataFrames so choropleth map will read the geometry columns
-
-councildist13_geographies['geometry'] = councildist13_geographies['geometry'].apply(wkt.loads)
-council13_geographies = GeoDataFrame(councildist13_geographies, crs="EPSG:4326", geometry='geometry')
-councildist23_geographies['geometry'] = councildist23_geographies['geometry'].apply(wkt.loads)
-council23_geographies = GeoDataFrame(councildist23_geographies, crs="EPSG:4326", geometry='geometry')
-communitydist_geographies['geometry'] = communitydist_geographies['geometry'].apply(wkt.loads)
-communitydist_geographies = GeoDataFrame(communitydist_geographies, crs="EPSG:4326", geometry='geometry')
-schooldist_geographies['geometry'] = schooldist_geographies['geometry'].apply(wkt.loads)
-schooldist_geographies = GeoDataFrame(schooldist_geographies, crs="EPSG:4326", geometry='geometry')
-policeprct_geographies['geometry'] = policeprct_geographies['geometry'].apply(wkt.loads)
-policeprct_geographies = GeoDataFrame(policeprct_geographies, crs="EPSG:4326", geometry='geometry')
-nta_geographies['geometry'] = nta_geographies['geometry'].apply(wkt.loads)
-nta_geographies = GeoDataFrame(nta_geographies, crs="EPSG:4326", geometry='geometry')
-borough_geographies['geometry'] = borough_geographies['geometry'].apply(wkt.loads)
-borough_geographies = GeoDataFrame(borough_geographies, crs="EPSG:4326", geometry='geometry')
-
-# all possible demographic dropdown items in Dash App have to be placed in a dictionary
-# will be used to translate dropdown menu choices to codes used in the census api (50 variables at a time is the limit)
-
-# variable names found at https://api.census.gov/data/2021/acs/acs5/profile/variables.html
-
-# first 50 variables
-
-# all available demographic estimates (variable codes are used by get_demo_estimates() to pull estimates from datasets)
-# from https://api.census.gov/data/2021/acs/acs5/profile/variables.html
-
-census_demo_variables = {'DP02_0088E':'Total population',
-                           'DP02_0001E':'Total households',
-                           'DP05_0071PE':'% Hispanic or Latino',
-                           'DP05_0076PE':'% Not Hispanic or Latino',
-                           'DP05_0039PE':'% American Indian and Alaska Native alone',
-                           'DP05_0044PE':'% Asian alone',
-                           'DP05_0038PE':'% Black or African American alone',
-                           'DP05_0052PE':'% Native Hawaiian and other Pacific Islander alone',
-                           'DP05_0037PE':'% White alone',
-                           'DP05_0057PE':'% Some other race alone',
-                           'DP05_0035PE':'% Two or more races',
-                           'DP05_0079PE':'% American Indian and Alaska Native alone, not Hispanic or Latino',
-                           'DP05_0080PE':'% Asian alone, not Hispanic or Latino',
-                           'DP05_0078PE':'% Black or African American alone, not Hispanic or Latino',
-                           'DP05_0081PE':'% Native Hawaiian and other Pacific Islander alone, not Hispanic or Latino',
-                           'DP05_0077PE':'% White alone, not Hispanic or Latino',
-                           'DP05_0082PE':'% Some other race alone, not Hispanic or Latino',
-                           'DP05_0083PE':'% Two or more races, not Hispanic or Latino',
-                           'DP05_0002PE':'% Male',
-                           'DP05_0003PE':'% Female',
-                           'DP05_0019PE':'% Under 18 years',
-                           'DP05_0021PE':'% Over 18 years',
-                           'DP05_0024PE':'% 65 years and over',
-                           'DP02_0053E':'% Enrolled in school (3 years and over)',
-                           'DP02_0054E':'% Enrolled in nursery school, preschool',
-                           'DP02_0055E':'% Enrolled in Kindergarten',
-                           'DP02_0056E':'% Enrolled in grades 1-8',
-                           'DP02_0057E':'% Enrolled in grades 9-12',
-                           'DP02_0058E':'% Enrolled in college, graduate school',
-                           'DP02_0061E':'% Adults with no high school diploma',
-                           'DP02_0062E':'% Adults with high school diploma (includes equivalency)',
-                           'DP02_0068E':'% Adults with Bachelor\'s degree or higher',
-                           'DP03_0002E':'% In the labor force (16 and older)',
-                           'DP03_0007E':'% Not in the labor force (16 and older)',
-                           'DP03_0004E':'% Employed (16 and older)',
-                           'DP03_0005E':'% Unemployed (16 and older)',
-                           'DP02_0090E':'% Born in the US',
-                           'DP02_0093E':'% Born in Puerto Rico, U.S. Island areas, or abroad to American parents)',
-                           'DP02_0094PE':'% Foreign born',
-                           'DP02_0096E':'% Naturalized US citizen (foreign born)',
-                           'DP02_0097E':'% Not a US citizen (foreign born)',
-                           'DP02_0113E':'% Speak only English at home (5 years and older)',
-                           'DP02_0115E':'% Speak English less than "very well" (5 years and older)',
-                           'DP02_0116E':'% Speak Spanish at home (5 years and older)',
-                           'DP02_0072E':'% With a disability (civilian, noninstitutionalized)',
-                           'DP02_0074E':'% With a disability, under 18 (civilian, noninstitutionalized)',
-                           'DP02_0076E':'% With a disability, over 18-65 (civilian, noninstitutionalized)',
-                           'DP02_0078E':'% With a disability, over 65 (civilian, noninstitutionalized)',
-                           'DP03_0096E':'% With health insurance (civilian, noninstitutionalized)',
-                           'DP03_0097E':'% With private health insurance (civilian, noninstitutionalized)',
-                           'DP03_0098E':'% With public coverage (civilian, noninstitutionalized)',
-                           'DP03_0099E':'% With no health insurance coverage (civilian, noninstitutionalized)',
-                           'DP03_0019E':'% Drive to work (workers 16 and older)',
-                           'DP03_0020E':'% Carpool to work (workers 16 and older)',
-                           'DP03_0021E':'% Take public transit to work (workers 16 and older)',
-                           'DP03_0022E':'% Walk to work (workers 16 and older)',
-                           'DP03_0024E':'% Work from home (workers 16 and older)',
-                           'DP05_0005PE':'% Under 5 years',
-                           'DP05_0006PE':'% 5 to 9 years',
-                           'DP05_0007PE':'% 10 to 14 years',
-                           'DP05_0008PE':'% 15 to 19 years',
-                           'DP05_0009PE':'% 20 to 24 years',
-                           'DP05_0010PE':'% 25 to 34 years',
-                           'DP05_0011PE':'% 35 to 44 years',
-                           'DP05_0012PE':'% 45 to 54 years',
-                           'DP05_0013PE':'% 55 to 59 years',
-                           'DP05_0014PE':'% 60 to 64 years',
-                           'DP05_0015PE':'% 65 to 74 years',
-                           'DP05_0016PE':'% 75 to 84 years',
-                           'DP05_0017PE':'% 85 years and over'
-                          }
-
-####################################
-
-def get_geo_estimates(geo, var_codes, polygons = False, download = False, demo_dict = census_demo_variables):
+    Notes:
+    All variables are taken from the 5-Year ACS Data Profiles data dictionary. Codes ending with 'E' and 
+    'M' represent numerical estimates and margins of error, respectively, while codes ending with 'PE' and 'PM'
+    represent percent estimates and margins of error, respectively. Codes ending with 'V' represent coefficients of variation.
+    """
     
-    if geo not in ['councildist13', 'councildist23', 'policeprct', 'schooldist', 'communitydist', 'nta', 'schooldist', 'borough', 'nyc']: # error if geo not available
-        raise ValueError('Estimates for the geography type ' + geo + ' are not available')
-    
-    if geo != 'nyc': request_df = deepcopy(globals()[f'{geo}_geographies'])
-    else: request_df = deepcopy(nyc_wide_estimates)
+    if acs_year: acs_year = int(acs_year) # so don't get error if accidentally input wrong dtype
+
+    # find the directory with the data files
+    extdata_path = f'{absolute_path}inst/extdata'
+
+    # locate available CSV files
+    file_names = os.listdir(extdata_path)
+    geo_file_names = [f for f in file_names if "geographies" in f or "nyc-wide" in f]
+    geo_names = list(set([f.split('-')[0] for f in geo_file_names]))
+    geo_names.remove('nyc')
+    geo_names.append('city')
+
+    # record available years
+    available_years = sorted(set(int(f.split('_')[-1][:4]) for f in file_names if f.split('_')[-1][:4].isdigit()))
+
+    # boundary year information
+    boundary_year_num = str(boundary_year)[-2:] if boundary_year else None
+
+    def read_geos(geo, boundary_year_ext=None):
+        """
+        Internal function to read and wrangle geo files.
+        """
+        
+        # preparing to access files with boundary year in name
+        add_boundary_year = f"_b{boundary_year_ext}" if boundary_year_ext else ""
+        
+        # building paths
+        if geo == "city":
+            file_path = f'{extdata_path}/nyc-wide_estimates_{acs_year}.csv'
+            geo_df = pd.read_csv(file_path)
+        else:
+            file_path = f'{extdata_path}/{geo}-geographies{add_boundary_year}_{acs_year}.geojson'
+            geo_df = gpd.read_file(file_path).set_crs(epsg=2263)
+
+        # if list of variable codes requested, subset
+        if var_codes == "all": 
+            return geo_df
+        
+        # if list of variable codes requested, subset
+        else: 
             
-    col_name_list = []
-        
-    for var_code in var_codes:
+            # list of columns for chosen variable(s) if "all" NOT selected
+            master_col_list = [geo] 
+            
+            # creating list of desired variables names (for sub-setting final table)
+            for var_code in var_codes:  
+                
+                # check if the variable code is available in the data
+                if var_code not in geo_df.columns:
+                    raise ValueError(f"Estimates for the variable code {var_code} are not available. Check for any typos.\n"
+                                     "View available variable codes using get_ACS_variables(), or input 'all' to view all columns.")
+                else:
+                    var_code_base = var_code[:9]
+                    var_col_list = [
+                        f"{var_code_base}E",  # numeric estimate
+                        f"{var_code_base}M",  # numeric MOE
+                        f"{var_code_base}PE", # percentage estimate
+                        f"{var_code_base}PM", # percentage MOE
+                        f"{var_code_base}V"  # coefficient of Variation
+                    ]
+                    
+                    # updating master column list
+                    master_col_list.extend(var_col_list)
+                    
+            return geo_df[master_col_list + ['geometry']] # adding all desired columns + geometry column 
 
-        if var_code not in demo_dict.keys(): # error if var_code not available
-            raise ValueError('Estimates for the variable code ' + var_code + ' are not available')
-
-        if var_code in demo_dict.keys():
-
-            col_name = demo_dict[var_code]
-
-            col_name_list.append(col_name)
-
-            if var_code not in ['DP02_0088E', 'DP02_0001E']: # these variables don't have MOE or CV
-                col_name_list.append(col_name + ' MOE')
-                col_name_list.append(col_name[2:] + ' CV')
-    
-    if polygons and geo != 'nyc':
-        
-        geometries = request_df['geometry']
-        
-        request_df = request_df[col_name_list]
-        request_df['geometry'] = geometries
-        
+    # check input cases
+    if acs_year is None:
+        raise ValueError("`acs_year` parameter is required. Available options are:\n" +
+                         ", ".join(map(str, available_years)))
+    elif geo is None:
+        raise ValueError("`geo` parameter is required. Available options are:\n" +
+                         ", ".join(geo_names))
+    elif geo == "councildist" and str(boundary_year) not in ["2013", "2023"]:
+        warn("`boundary_year` must be set to 2013 or 2023 when `geo` is 'councildist'. Defaulting to 2023.")
+        boundary_year_num = "23"
+        return read_geos(geo, boundary_year_num)
+    elif acs_year not in available_years:
+        raise ValueError(f"The ACS year {acs_year} could not be found. Available options are:\n" +
+                         ", ".join(map(str, available_years)))
+    elif geo not in geo_names:
+        raise ValueError(f"The geography '{geo}' could not be found. Available options are:\n" +
+                         ", ".join(geo_names))
+    elif geo != "councildist" and boundary_year is not None:
+        warn("`boundary_year` is only relevant for `geo = councildist`. Ignoring `boundary_year` input.")
+        return read_geos(geo)
     else:
-        
-        request_df = request_df[col_name_list]
-        
-    if download:
-        
-        request_df.to_csv('demographic-estimates_by_' + geo + '.csv')
-            
-    return request_df
+        return read_geos(geo, boundary_year_num)
 
-####################################
+############################
 
-def get_bbl_estimates(pop_est_df = population_estimates):
+def get_bbl_estimates(year=None):
+    """
+    Produces a dataframe containing BBL-level population estimates for a specified year.
+
+    Parameters:
+    year (str): The desired year for BBL-level estimates. If None, the most recent year available will be used.
+
+    Returns:
+    pandas.DataFrame: A table with population estimates by BBL, including multiple geography columns for aggregation. 
+                      Avoid using estimates for individual BBLs; the more aggregation, the less error.
+    """
+    if year: year = str(year) # so don't get error if accidentally input wrong dtype
+        
+    # find the directory with the data files
+    extdata_path = f'{absolute_path}inst/extdata'
     
-    return pop_est_df
-
-####################################
-
-# outputs the available variables and their census api codes
-
-def get_census_variables(demo_dict = census_demo_variables):
+    # find all available years
+    csv_names = [f for f in os.listdir(extdata_path) if f.endswith(".csv")]
+    bbl_csv_names = [name for name in csv_names if "bbl-population-estimates_" in name]
+    bbl_years = [name[25:29] for name in bbl_csv_names]
     
-# demo_dict: the dict of available variable codes
+    # if year is not chosen, set default to latest year
+    if year is None:
+        year = max(bbl_years)
+    
+    # construct the name of the dataset based on the year
+    bbl_name = f"bbl-population-estimates_{year}.csv"
+    
+    # error message if unavailable survey year selected
+    if year not in bbl_years:
+        available_years = "\n".join(bbl_years)
+        raise ValueError(
+            f"This year is not available.\n"
+            f"Please choose from the following:\n{available_years}"
+        )
+    
+    print(f"Printing BBL-level population estimates for {year}")
+    
+    # retrieve the dataset
+    file_path = f'{extdata_path}/{bbl_name}'
+    df = pd.read_csv(file_path)
+    
+    return df
 
-    variable_df = pd.DataFrame(demo_dict.items(), columns=['var_code', 'var_name']) # df of each code/ variable name pairing  
-    variable_df['var_name'] =  variable_df['var_name'].apply(lambda x: x[2:] if x not in ['Total population', 'Total households'] else x) # removing % from beginning of variable names
-        
-    return variable_df
+############################
+
+def get_ACS_variables(acs_year=None):
+    """
+    Retrieve the available ACS demographic variables and their codes for a specified survey year.
+
+    Parameters:
+    acs_year (str): Desired 5-Year ACS year (e.g., for the 2017-2021 5-Year ACS, enter "2021").
+                    If None, the most recent year available will be used.
+
+    Returns:
+    pd.DataFrame: Table of available variables with columns for variable code, variable name, 
+                  denominator code, and denominator name (the "denominator variable" is the 
+                  denominator population in percent estimate calculations). Use variable codes
+                  as the input for `var_codes` in get_geo_estimates().
+
+    Raises:
+    ValueError: If the requested year is not available.
+    """
+    
+    if acs_year: acs_year = str(acs_year) # so don't get error if accidentally input wrong dtype
+    
+    # find the directory with the data files
+    extdata_path = f'{absolute_path}inst/extdata'
+
+    # find all the available years
+    csv_names = [f for f in os.listdir(extdata_path) if f.endswith(".csv")]
+    dictionary_csv_names = [name for name in csv_names if "data_dictionary" in name]
+    dictionary_years = [name[16:20] for name in dictionary_csv_names]
+
+    # if year is not chosen, set default to the latest year
+    if acs_year is None:
+        acs_year = max(dictionary_years)
+
+    # construct the name of the dataset based on the year
+    dict_name = f"data_dictionary_{acs_year}.csv"
+
+    # error message if the requested year is unavailable
+    if acs_year not in dictionary_years:
+        available_years = "\n".join(dictionary_years)
+        raise ValueError(
+            f"This year is not available.\n"
+            f"Please choose from the following:\n{available_years}"
+        )
+
+    print(f"Printing data dictionary for the {acs_year} 5-Year ACS")
+
+    # Retrieve the data dictionary
+    file_path = f'{extdata_path}/{dict_name}'
+    df = pd.read_csv(file_path)
+
+    return df

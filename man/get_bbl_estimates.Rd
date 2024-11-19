@@ -2,13 +2,16 @@
 % Please edit documentation in R/get_bbl_estimates_function.R
 \name{get_bbl_estimates}
 \alias{get_bbl_estimates}
-\title{Function to retrieve PLUTO bbl population estimates}
+\title{Function to produce a dataframe containing BBL-level population estimates for a specified year}
 \usage{
-get_bbl_estimates()
+get_bbl_estimates(year = NULL)
+}
+\arguments{
+\item{year}{(string). The desired year for BBL-level estimates. The most recent year available will populate if left NULL.}
 }
 \value{
-tibble with PLUTO bbl population estimates
+Table with population estimates by BBL, as well as multiple geography columns for aggregation. Avoid using estimates for individual BBLs—the more aggregation, the less error.
 }
 \description{
-Function to retrieve PLUTO bbl population estimates
+Function to produce a dataframe containing BBL-level population estimates for a specified year
 }

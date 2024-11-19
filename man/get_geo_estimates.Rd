@@ -2,20 +2,27 @@
 % Please edit documentation in R/get_geo_estimates_function.R
 \name{get_geo_estimates}
 \alias{get_geo_estimates}
-\title{Function to retrieve acs estimates from csvs at different geographies}
+\title{Function to retrieve demographic estimates by specified geography and ACS year}
 \usage{
-get_geo_estimates(geo = NULL, var_codes = "all", boundary_year = NULL)
+get_geo_estimates(
+  acs_year = NULL,
+  geo = NULL,
+  var_codes = "all",
+  boundary_year = NULL
+)
 }
 \arguments{
-\item{geo}{(string). Name of the geography with associated csv in "extdata". If NULL, returns a list of possible geography csvs. Options: "borough", "communitydist", "councildist", "nta", "policeprct", "schooldist".}
+\item{acs_year}{(string). The desired 5-Year ACS year (ex: for the 2017-2021 5-Year ACS, enter "2021").}
 
-\item{var_codes}{(list). List of chosen variable codes, selected from get_census_variables. If wish to select all variable codes, input "all" (this is also the default value).}
+\item{geo}{(string). Geographic level of aggregation desired. Options: "borough", "communitydist", "councildist", "nta", "policeprct", "schooldist", "city".}
 
-\item{boundary_year}{(string). Year for the geographic boundary (i.e. geo). Currently only relevant for council districts, which have the options "2013" and "2023".}
+\item{var_codes}{(list). List of chosen variable codes, selected from get_ACS_variables(). The default input is "all", which provides estimates for all available variable codes.}
+
+\item{boundary_year}{(string). Year for the geographic boundary (i.e. `geo`). Currently only relevant for council districts, which have the options "2013" and "2023".}
 }
 \value{
-sf for the specified geography, or message with list of geographies if none is specified
+Table with estimates for the specified geography, ACS year. All variables are taken from the 5-Year ACS Data Profiles data dictionary, which can be found here: https://api.census.gov/data/{INSERT YEAR}/acs/acs5/profile/variables.html. Codes ending with 'E' and 'M' represent numerical estimates and margins of error, respectively, while codes ending with 'PE' and 'PM' represent percent     estimates and margins of error, respectively. Codes ending with 'V' represent coefficients of variation.
 }
 \description{
-Function to retrieve acs estimates from csvs at different geographies
+Function to retrieve demographic estimates by specified geography and ACS year
 }
