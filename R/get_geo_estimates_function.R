@@ -53,7 +53,7 @@ get_geo_estimates <- function(acs_year = NULL, geo = NULL, var_codes = "all", bo
         if (!(var_code %in% colnames(geo_df))) {
           stop(paste("Estimates for the variable code", var_code, "are not available", "\n",
                      "You may have made a typo, so please double check your work.", "\n",
-                     "You can use the get_census_variables() function to view your variable options, or input 'all' to view all columns.\n"))
+                     "You can use the get_ACS_variables() function to view your variable options, or input 'all' to view all columns.\n"))
         } else {
 
           # add num estimate, num MOE, % estimate, % MOE, and CV for the variable code
