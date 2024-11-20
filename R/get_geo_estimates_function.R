@@ -35,7 +35,7 @@ get_geo_estimates <- function(acs_year = NULL, geo = NULL, var_codes = "all", bo
     # creating output sf
 
     if (geo == 'city') {
-      geo_df <- read_csv(system.file("extdata", glue::glue("nyc-wide_estimates_{acs_year}.csv"), package = "councilcount"))
+      geo_df <- readr::read_csv(system.file("extdata", glue::glue("nyc-wide_estimates_{acs_year}.csv"), package = "councilcount"))
     } else { geo_df <- sf::st_read(fs::path_package("extdata",glue::glue("{geo}-geographies{add_boundary_year}_{acs_year}.geojson"), package = "councilcount")) %>%
       sf::st_as_sf(wkt = "geometry", crs = 2263) # setting CRS to 2263 for NYC
     }
