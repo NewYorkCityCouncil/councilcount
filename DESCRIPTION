@@ -6,7 +6,7 @@ Author: Rachel Avram, Nicholas Montalbano, James Wu
 Description: The `councilcount` package allows easy access to ACS population data across various geographic boundaries. For the boundaries that are not native to the ACS, such as council districts, an estimate is provided.
 License: What license is it under?
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 RoxygenNote: 7.3.2
 Imports:
     tidyverse,
