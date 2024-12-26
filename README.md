@@ -93,7 +93,7 @@ use the following code (Note: you must have the `councilcount` package downloade
 import sys
 my_path = 'INSERT PATH' # set absolute path to /councilcount/inst/python location (example: '/Users/jsmith/Desktop)
 sys.path.insert(0, my_path + "/councilcount/inst/python/")
-from retrieve_estimates import get_bbl_estimates, get_census_variables, get_geo_estimates
+from retrieve_estimates import get_bbl_estimates, get_ACS_variables, get_geo_estimates
 ```
 
 ## Data Sources 
