@@ -46,9 +46,9 @@ estimates at the BBL level. There are also columns for latitude and longitude, w
 spatial joins if aggregation to other geography levels is desired.
 * `get_geo_estimates()` – Creates a dataframe that provides population estimates for selected
 demographic variables along chosen geographic boundaries (e.g. council
-district, borough, etc.) for a chosen ACS 5-Year survey
+district, borough, etc.) for a chosen ACS 5-Year survey.
 * `get_ACS_variables()` – Provides information on all of the available ACS demographic variables that can be
-accessed via `get_geo_estimates()` for a specified survey year
+accessed via `get_geo_estimates()` for a specified survey year.
 
 `get_bbl_estimates()` has 1 parameter:
 
@@ -72,7 +72,7 @@ list:
    * New York City: "city"
 * `var_codes` – The desired demographic group(s), as represented
 by the ACS variable code. To access the list of available demographic
-variables and their codes, please run `get_ACS_variables()` for the desired survey year
+variables and their codes, please run `get_ACS_variables()` for the desired survey year.
 * `boundary_year` – If “councildist” is selected, the boundary year must
 be specified as 2013 or 2023. The default is 2023.
 
