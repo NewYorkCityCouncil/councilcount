@@ -7,7 +7,8 @@ The `councilcount` package allows easy access to population data for
 over 100 demographic groups across various NYC geographic boundaries.
 This data was pulled from the 5-Year American Community
 Survey. For geographic boundaries that are not included in the ACS, like
-council districts, estimates were generated.
+council districts, estimates were generated. To view this data in an interactive format, 
+please visit https://rnd.council.nyc.gov/councilcount/. 
 
 ## Installation
 
@@ -41,8 +42,8 @@ First load the `councilcount` package as above.
 `councilcount` includes 3 functions:
 
 * `get_bbl_estimates()` – Generates a dataframe that provides population
-estimates at the BBL level (there are also columns for various other
-geographies, like council district, which can be used for geographic aggregation) 
+estimates at the BBL level. There are also columns for latitude and longitude, which allow for
+spatial joins if aggregation to other geography levels is desired.
 * `get_geo_estimates()` – Creates a dataframe that provides population estimates for selected
 demographic variables along chosen geographic boundaries (e.g. council
 district, borough, etc.) for a chosen ACS 5-Year survey
@@ -71,7 +72,7 @@ list:
    * New York City: "city"
 * `var_codes` – The desired demographic group(s), as represented
 by the ACS variable code. To access the list of available demographic
-variables and their codes, please run `get_ACS_variables()`
+variables and their codes, please run `get_ACS_variables()` for the desired survey year
 * `boundary_year` – If “councildist” is selected, the boundary year must
 be specified as 2013 or 2023. The default is 2023.
 
