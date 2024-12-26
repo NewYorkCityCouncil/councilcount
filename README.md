@@ -97,6 +97,13 @@ sys.path.insert(0, my_path + "/councilcount/inst/python/")
 from retrieve_estimates import get_bbl_estimates, get_ACS_variables, get_geo_estimates
 ```
 
+You can also access the Python version via PyPi:
+
+``` python
+!pip install councilcount
+import councilcount as cc
+```
+
 ## Data Sources 
 
 * [The Five Year American Community Survey (ACS)](https://www.census.gov/data/developers/data-sets/acs-5year.html)
