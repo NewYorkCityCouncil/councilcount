@@ -97,7 +97,7 @@ sys.path.insert(0, my_path + "/councilcount/inst/python/")
 from retrieve_estimates import get_bbl_estimates, get_ACS_variables, get_geo_estimates
 ```
 
-You can also access the Python version via PyPi:
+You can also access the Python version via PyPI:
 
 ``` python
 !pip install councilcount
