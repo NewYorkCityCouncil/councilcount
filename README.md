@@ -104,6 +104,8 @@ You can also access the Python version via PyPi:
 import councilcount as cc
 ```
 
+If ```!pip install councilcount``` fails, try ```%pip install councilcount```.
+
 ## Data Sources 
 
 * [The Five Year American Community Survey (ACS)](https://www.census.gov/data/developers/data-sets/acs-5year.html)
