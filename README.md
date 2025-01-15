@@ -88,7 +88,20 @@ get_geo_estimates(acs_year = "2022", geo = "councildist", var_codes = vars, boun
 #### Python
 
 The equivalent functions are also available in Python. To access them,
-use the following code (Note: you must have the `councilcount` package downloaded on your computer):
+use the following code.
+
+You can also access the Python version via PyPI:
+
+Use pip to install the package in the terminal:
+``` bash
+pip install councilcount
+```
+Then import the package in Python:
+``` python
+import councilcount as cc
+```
+
+You can also download the package using the R-based version of the package. You must have the `councilcount` package downloaded on your computer for this installation method:
 
 ``` python
 import sys
@@ -96,15 +109,6 @@ my_path = 'INSERT PATH' # set absolute path to /councilcount/inst/python locatio
 sys.path.insert(0, my_path + "/councilcount/inst/python/")
 from retrieve_estimates import get_bbl_estimates, get_ACS_variables, get_geo_estimates
 ```
-
-You can also access the Python version via PyPI:
-
-``` python
-!pip install councilcount
-import councilcount as cc
-```
-
-If ```!pip install councilcount``` fails, try ```%pip install councilcount```.
 
 ## Data Sources 
 
