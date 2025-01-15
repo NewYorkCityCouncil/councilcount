@@ -88,9 +88,7 @@ get_geo_estimates(acs_year = "2022", geo = "councildist", var_codes = vars, boun
 #### Python
 
 The equivalent functions are also available in Python. To access them,
-use the following code.
-
-You can also access the Python version via PyPI:
+use the following code:
 
 Use pip to install the package in the terminal:
 ``` bash
