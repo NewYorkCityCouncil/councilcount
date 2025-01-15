@@ -99,7 +99,7 @@ Then import the package in Python:
 import councilcount as cc
 ```
 
-You can also download the package using the R-based version of the package. You must have the `councilcount` package downloaded on your computer for this installation method:
+You can also download the package using the following code. You must have the `councilcount` package downloaded on your computer for this installation method:
 
 ``` python
 import sys
